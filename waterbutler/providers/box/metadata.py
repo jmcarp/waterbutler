@@ -1,10 +1,13 @@
+import os
+
 from waterbutler.core import metadata
 
 
 class BaseBoxMetadata(metadata.BaseMetadata):
 
-    def __init__(self, raw, folder):
+    def __init__(self, raw, path):
         super().__init__(raw)
+        self._path = path
 
     @property
     def provider(self):
@@ -19,7 +22,7 @@ class BoxFolderMetadata(BaseBoxMetadata, metadata.BaseFolderMetadata):
 
     @property
     def path(self):
-        return '/{}/'.format(self.raw['id'])
+        return os.path.join(str(self._path), self.name) + '/'
 
 
 class BoxFileMetadata(BaseBoxMetadata, metadata.BaseFileMetadata):
@@ -30,7 +33,7 @@ class BoxFileMetadata(BaseBoxMetadata, metadata.BaseFileMetadata):
 
     @property
     def path(self):
-        return '/{0}/{1}'.format(self.raw['id'], self.raw['name'])
+        return os.path.join(str(self._path), self.name)
 
     @property
     def size(self):
@@ -63,19 +66,12 @@ class BoxRevision(metadata.BaseFileRevisionMetadata):
         return 'revision'
 
     @property
-    def path(self):
-        try:
-            return '/{0}/{1}'.format(self.raw['id'], self.raw['name'])
-        except KeyError:
-            return self.raw.get('path')
-
-    @property
     def modified(self):
         try:
             return self.raw['modified_at']
         except KeyError:
             return self.raw.get('modified')
 
-    @property
-    def revision(self):
-        return self.raw['etag']
+    # @property
+    # def revision(self):
+    #     return self.raw['etag']
